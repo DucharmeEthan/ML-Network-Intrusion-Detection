@@ -8,7 +8,7 @@ Step 1: Understand the Problem
 Research network traffic analysis, anomaly detection techniques, and the types of anomalies (e.g., intrusion attempts, unusual data transfers).
 
 Step 2: Data Collection and Preparation
-part A: Choose a Dataset: The KDD Cup 1999 dataset is a classic choice for intrusion detection. Also gather data from home and any other possible networks this is done within the packets.py class
+part A: Choose a Dataset: The KDD Cup 1999 dataset is a classic choice for intrusion detection.
 Part B: Data Preprocessing: Clean and preprocess the dataset. Remove duplicates, handle missing values, and convert categorical data into numerical formats if necessary.
 
 Step 3: Feature Extraction
@@ -32,6 +32,6 @@ Step 8: Visualization and Interpretation
 Visualize Anomalies: Create visualizations that highlight the detected anomalies in the network traffic data.
 
 Step 9: Deployment and Real-Time Monitoring (Optional)
-Integration: If you're working with real-time data, consider how your model can be integrated into a live network environment.
+Integration: consider how your model can be integrated into a live network environment.
 Monitoring: Develop a system that can continuously monitor incoming network traffic and classify it as normal or anomalous.
 

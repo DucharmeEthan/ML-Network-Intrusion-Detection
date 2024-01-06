@@ -1,14 +1,12 @@
 # Imports
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torchvision import datasets, transforms as T
-from ML_models import SimpleNN
-from dataSet import CustomDataset
-
-# Optional, for visualization purposes.
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.metrics import confusion_matrix
 
 model = ""
 default = "SNN"
@@ -16,48 +14,49 @@ LEARNING_RATE = 0.001
 
 
 def main():
-    transform = T.Compose([T.ToTensor()])
 
-    csv_file_path = "../../BaseData/kddcup99_converted.csv"
-    dataset = CustomDataset(csv_file_path, transform=transform)
+    csv_file_path = "../BaseData/kddcup99_converted.csv"
+    data = pd.read_csv(csv_file_path)
 
-    # Step 4: Create a DataLoader
-    batch_size = 32
-    train_loader = T.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    test_loader = T.DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    # Step 5: Iterate through the D
+    data_x = data.drop(data.columns[-1], axis=1)
+    data_y = data['Labels ']
 
-    model = SimpleNN()
+    label_encoder = LabelEncoder()
+    data_y = label_encoder.fit_transform(data_y)
 
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE)
-    loss_func = nn.NLLLoss()
+    categorical_cols = ['protocol_type', 'service', 'flag']
+    data_x = pd.get_dummies(data_x, columns=categorical_cols)
 
-    for epoch in range(30):
-        model.train()  # Tells PyTorch that we want to accumulate derivatives during the computations
-        for batch, (data, targets) in enumerate(train_loader):
-            optimizer.zero_grad()  # resets the derivatives used by the optimizer
-            out = model(data)
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        data_x, data_y, test_size=0.2)
 
-            loss = loss_func(torch.log(out), targets)
+    # Scale the data
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
 
-            loss.backward()  # computes derivatives
-            # updates the model weights based on the previous derviatives.
-            optimizer.step()
+    # Create the neural network model
+    model = MLPClassifier(hidden_layer_sizes=(
+        100, 100), max_iter=50, verbose=2)
 
-        model.eval()  # tells pytorch not to track derivatives
+    # Train the model
+    model.fit(X_train, y_train)
 
-        # we test the model after every training epoch in order to measure how the model
-        # generalizes to unseen data
-        correct = 0
-        for batch, (data, targets) in enumerate(test_loader):
-            out = model(data)
-            # this just takes the maximum probability label as the predicted label
-            best_guesses = out.argmax(dim=1)
-            correct += (best_guesses == targets).sum()
+    # Evaluate the model
+    score = model.score(X_test, y_test)
+    print('Accuracy:', score)
 
-        print(f'Test Correct: {correct/len(dataset)}')
+    # Make predictions
+    y_pred = model.predict(X_test)
 
-    torch.save(model.state_dict(), 'test.pt')
+    # Plot the confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.colorbar()
+    plt.xlabel('Predicted class')
+    plt.ylabel('True class')
+    plt.show()
 
 
 if __name__ == '__main__':
